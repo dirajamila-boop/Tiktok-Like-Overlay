@@ -110,6 +110,8 @@
 
     const users = {};
 
+    const resetTimers = {};
+
     const timers = {};
 
     socket.onmessage = event => {
@@ -156,7 +158,22 @@
 
       users[userId].picture = picture;
 
-      users[userId].count = likeCount;
+      if (resetTimers[userId]);
+    }
+
+    if (user[userId].sessionCount == null) {
+      users[userId].sessionCount = 0;
+    }
+
+    users[uderId].sessionCount += likecount;
+    users[userId].count = users[userId].session;
+
+    resetTimers[userId] = setTimeout (() => {
+      users[userId].sessionCount = 0;
+      delete resetTimers[userId];
+    }, 2000);
+
+    
 
       const itemId = "user-" + Object.keys(users).indexOf(userId);
 
