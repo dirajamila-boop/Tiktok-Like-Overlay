@@ -156,7 +156,7 @@
 
       users[userId].picture = picture;
 
-      users[userId].count += likeCount;
+      users[userId].count = likeCount;
 
       const itemId = "user-" + Object.keys(users).indexOf(userId);
 
