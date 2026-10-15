@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+
+<html lang="nl">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>TikTok Like Overlay</title>
+
+  <style>
+
+    body {
+
+      margin: 0;
+
+      padding: 20px;
+
+      background: transparent;
+
+      font-family: Arial, sans-serif;
+
+      color: white;
+
+    }
+
+    #likes {
+
+      display: flex;
+
+      flex-direction: column;
+
+      gap: 12px;
+
+    }
+
+    .like-item {
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 12px;
+
+      padding: 12px 18px;
+
+      background: rgba(20, 20, 20, 0.85);
+
+      border-radius: 16px;
+
+      width: fit-content;
+
+      min-width: 280px;
+
+    }
+
+    .avatar {
+
+      width: 52px;
+
+      height: 52px;
+
+      border-radius: 50%;
+
+      object-fit: cover;
+
+    }
+
+    .nickname {
+
+      font-size: 18px;
+
+      font-weight: bold;
+
+    }
+
+    .count {
+
+      margin-top: 5px;
+
+      font-size: 15px;
+
+      color: #ffb6c1;
+
+    }
+
+    .heart {
+
+      color: #ff1744;
+
+      font-size: 24px;
+
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+  <div id="likes"></div>
+
+  <script>
+
+    // Gebruik hier dezelfde WebSocket-URL
+
+    // als in je huidige werkende testbestand.
+
+    const socket = new WebSocket("ws://localhost:21213/");
+
+    const users = {};
+
+    socket.onmessage = event => {
+
+      let message;
+
+      try {
+
+        message = JSON.parse(event.data);
+
+      } catch (error) {
+
+        return;
+
+      }
+
+      if (message.event !== "like") return;
+
+      const data = message.data || {};
+
+      const nickname = data.nickname || "TikTok kijker";
+
+      const userId = data.uniqueId || data.userId || nickname;
+
+      const likeCount = Number(data.likeCount || 0);
+
+      const picture = data.profilePictureUrl || "";
+
+      if (!users[userId]) {
+
+        users[userId] = {
+
+          nickname,
+
+          picture,
+
+          count: 0
+
+        };
+
+      }
+
+      users[userId].nickname = nickname;
+
+      users[userId].picture = picture;
+
+      users[userId].count += likeCount;
+
+      let item = document.getElementById(
+
+        "user-" + Object.keys(users).indexOf(userId)
+
+      );
+
+      if (!item) {
+
+        item = document.createElement("div");
+
+        item.className = "like-item";
+
+        item.id = "user-" + Object.keys(users).indexOf(userId);
+
+        const avatar = document.createElement("img");
+
+        avatar.className = "avatar";
+
+        avatar.alt = "";
+
+        const details = document.createElement("div");
+
+        const name = document.createElement("div");
+
+        name.className = "nickname";
+
+        const count = document.createElement("div");
+
+        count.className = "count";
+
+        details.append(name, count);
+
+        const heart = document.createElement("span");
+
+        heart.className = "heart";
+
+        heart.textContent = "❤️";
+
+        item.append(avatar, details, heart);
+
+        document.getElementById("likes").prepend(item);
+
+      }
+
+      const avatar = item.querySelector(".avatar");
+
+      const name = item.querySelector(".nickname");
+
+      const count = item.querySelector(".count");
+
+      if (picture) avatar.src = picture;
+
+      name.textContent = nickname + " ❤️";
+
+      count.textContent =
+
+        "Heeft " + users[userId].count + " likes gegeven!";
+
+    };
+
+    socket.onopen = () => {
+
+      console.log("WebSocket verbonden!");
+
+    };
+
+    socket.onerror = error => {
+
+      console.error("WebSocket-fout:", error);
+
+    };
+
+  </script>
+
+</body>
+
+</html>
