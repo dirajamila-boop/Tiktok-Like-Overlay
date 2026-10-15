@@ -54,6 +54,8 @@
 
       min-width: 280px;
 
+      transition: opacity 0.4s ease;
+
     }
 
     .avatar {
@@ -104,13 +106,11 @@
 
   <script>
 
-    // Gebruik hier dezelfde WebSocket-URL
-
-    // als in je huidige werkende testbestand.
-
-    const socket = new WebSocket("ws://localhost:21213/");
+    const socket = new WebSocket("ZET_HIER_JE_WEBSOCKET_URL");
 
     const users = {};
+
+    const timers = {};
 
     socket.onmessage = event => {
 
@@ -134,7 +134,7 @@
 
       const userId = data.uniqueId || data.userId || nickname;
 
-      const likeCount = Number(data.likeCount || 0);
+      const likeCount = Number(data.likeCount || data.LikeCount || 0);
 
       const picture = data.profilePictureUrl || "";
 
@@ -158,11 +158,9 @@
 
       users[userId].count += likeCount;
 
-      let item = document.getElementById(
+      const itemId = "user-" + Object.keys(users).indexOf(userId);
 
-        "user-" + Object.keys(users).indexOf(userId)
-
-      );
+      let item = document.getElementById(itemId);
 
       if (!item) {
 
@@ -170,7 +168,7 @@
 
         item.className = "like-item";
 
-        item.id = "user-" + Object.keys(users).indexOf(userId);
+        item.id = itemId;
 
         const avatar = document.createElement("img");
 
@@ -208,13 +206,35 @@
 
       const count = item.querySelector(".count");
 
-      if (picture) avatar.src = picture;
+      if (picture) {
+
+        avatar.src = picture;
+
+      }
 
       name.textContent = nickname + " ❤️";
 
       count.textContent =
 
         "Heeft " + users[userId].count + " likes gegeven!";
+
+      // Verwijder de melding na 10 seconden.
+
+      // Bij nieuwe likes begint de timer opnieuw.
+
+      clearTimeout(timers[userId]);
+
+      timers[userId] = setTimeout(() => {
+
+        item.style.opacity = "0";
+
+        setTimeout(() => {
+
+          item.remove();
+
+        }, 400);
+
+      }, 10000);
 
     };
 
